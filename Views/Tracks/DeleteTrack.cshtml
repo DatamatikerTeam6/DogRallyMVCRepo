@@ -1,0 +1,18 @@
+﻿@model DogRallyMVC.Models.TrackDTO
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Slet bane</h1>
+
+<h3>Er du sikker på, at du vil slette denne bane?</h3>
+<div>
+
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="TrackID" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Tilbage til Mine Baner</a>
+    </form>
+</div>

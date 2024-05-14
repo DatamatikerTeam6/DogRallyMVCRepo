@@ -1,0 +1,59 @@
+﻿@model IEnumerable<DogRallyMVC.Models.TrackDTO>
+
+@{
+    ViewData["Title"] = "Index";
+}
+<br />
+<h1>Mine Baner</h1>
+
+<p>
+    <form asp-action="CreateTrack" method="get">
+        <button type="submit" class="btn btn-outline-primary">Opret ny bane</button>
+    </form>
+</p>
+
+<div class="row">
+    <div class="col">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TrackName)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TrackDate)
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.TrackName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.TrackDate)
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <form asp-action="ReadTrack" asp-route-id="@item.TrackID" method="get">
+                                    <button type="submit" class="btn btn-primary">Indlæs bane</button>
+                                </form>
+
+                                <form asp-action="UpdateTrack" asp-route-id="@item.TrackID" method="get">
+                                    <button type="submit" class="btn btn-primary">Redigér bane</button>
+                                </form>
+
+                                <form asp-action="DeleteTrack" asp-route-id="@item.TrackID" method="post" onsubmit="return confirm('Er du sikker på, at du vil slette denne bane?');">
+                                    <button type="submit" class="btn btn-outline-danger">Slet bane</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

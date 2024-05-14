@@ -1,0 +1,138 @@
+﻿@model IEnumerable<DogRallyMVC.Models.TrackExerciseDTO>
+
+
+
+@{
+    ViewData["Title"] = "ReadTrack";
+    var firstTrack = Model.FirstOrDefault();
+    var firstTrackName = firstTrack == null ? "Default Track Name" : char.ToUpper(firstTrack.TrackName[0]) + firstTrack.TrackName.Substring(1);
+}
+<br />
+<h1>Indlæs bane</h1>
+<br />
+<style>
+    #canvas-container {
+        position: relative;
+    }
+
+    #dogTrainingCanvas {
+        background-image: url('/images/track.png');
+        background-size: 100% 100%;
+        border: 2px solid black;
+    }
+</style>
+
+<div id="canvas-container">
+    <canvas id="dogTrainingCanvas" width="1295" height="600"></canvas>
+    <!-- Indsæt din canvas kode her -->
+</div>
+
+<br />
+
+<h1><b>Banenavn:</b> @firstTrackName</h1>
+
+<hr />
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var key in ViewData.ModelState.Keys)
+            {
+                @foreach (var error in ViewData.ModelState[key].Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+<script>
+
+    @* Omdan Model.Exercises til et JSON-objekt *@
+        var exercises = @Html.Raw(Json.Serialize(Model.Select(e => new
+        {
+            e.ForeignExerciseID,
+            x = e.TrackExercisePositionX,
+            y = e.TrackExercisePositionY,
+        illustrationPath = e.ExerciseIllustrationPath
+        
+
+        })));
+
+    console.log(exercises);
+
+
+    var canvas = document.getElementById('dogTrainingCanvas');
+    var ctx = canvas.getContext('2d');
+
+    exercises.forEach(function (exercise) {
+        var img = new Image();
+        img.onload = function () {
+            console.log("Indlæst billede for øvelse: ", exercise.ExerciseID); // Rettede 'exercises.name' til 'exercise.navn'
+            exercise.image = img;
+            drawExercise(exercise);
+        };
+        img.onerror = function () {
+            console.error("Kunne ikke indlæse billede: ", exercise.illustrationPath); // Rettede 'exercises.IllustrationPath' til 'exercise.IllustrationPath'
+        };
+        img.src = exercise.illustrationPath; // Rettede 'exercises.IllustrationPath' til 'exercise.IllustrationPath'
+    });
+
+    function drawExercise(exercise) {
+        ctx.drawImage(exercise.image, exercise.x, exercise.y, 50, 50); // Rettede 'PositionX' og 'PositionY' til 'x' og 'y'
+    }
+
+    var draggedExercise = null;
+
+    canvas.addEventListener('mousedown', function (e) {
+        exercises.forEach(function (exercise, index) {
+            if (e.offsetX >= exercise.x && e.offsetX <= exercise.x + 50 && e.offsetY >= exercise.y && e.offsetY <= exercise.y + 50) {
+                draggedExercise = { ...exercise, index: index };
+            }
+        });
+    });
+
+    canvas.addEventListener('mousemove', function (e) {
+        if (draggedExercise) {
+            draggedExercise.x = e.offsetX - 25; // Centrer billedet under musen
+            draggedExercise.y = e.offsetY - 25;
+
+            // Opdater de relevante inputfelter
+            var posXField = document.getElementById('exercisePosX_' + draggedExercise.index);
+            var posYField = document.getElementById('exercisePosY_' + draggedExercise.index);
+            if (posXField && posYField) {
+                posXField.value = draggedExercise.x;
+                posYField.value = draggedExercise.y;
+            }
+
+            // Opdater positionen i exercises array
+            exercises[draggedExercise.index] = draggedExercise;
+
+            redrawCanvas();
+        }
+    });
+
+    canvas.addEventListener('mouseup', function () {
+        draggedExercise = null;
+    });
+
+
+    function redrawCanvas() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Rens canvas
+        exercises.forEach(drawExercise); // Tegn alle øvelser igen
+    }
+</script>
+
+
+
+<div>
+    <a asp-action="Index">Tilbage til Mine Baner</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
