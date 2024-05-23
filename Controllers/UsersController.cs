@@ -44,10 +44,42 @@ namespace DogRallyMVC.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Error sending data to API: {ex.Message}");
-                ViewBag.ApiResponse = $"Exception: {ex.Message}";  // Store exception message in ViewBag
+                TempData["ApiResponse"] = $"Exception: {ex.Message}";  // Store exception message in TempData
             }
 
             return RedirectToPage("/Account/Register", new { area = "Identity" });  // Returns to the view with errors and ViewBag information
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(UserDTO loginDTO)
+        {
+            HttpClient client = _httpClientFactory.CreateClient();
+
+            try
+            {
+                var response = await _userService.AuthenticateUser(loginDTO, client);
+                if (response.IsSuccessStatusCode)
+                {
+                    var token = await response.Content.ReadAsStringAsync(); // Assuming the token is returned in the response body
+                    HttpContext.Session.SetString("JWTToken", token);
+                    TempData["LoginResponseFromAPI"] = "Du er nu logget ind.";
+                    RedirectToAction("Index", "Home");  // You could also redirect to a success page as needed
+                }
+                else
+                {
+                    // Read the response body for error details
+                    var errorResponse = await response.Content.ReadAsStringAsync();
+                    ModelState.AddModelError(string.Empty, $"API returned an error: {errorResponse}");
+                    TempData["LoginResponseFromAPI"] = $"API Error: {errorResponse}";  // Storing error response in ViewBag for display
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Error sending data to API: {ex.Message}");
+                TempData["LoginResponseFromAPI"] = $"Exception: {ex.Message}";  // Store exception message in TempData
+            }
+
+            return RedirectToPage("/Account/Login", new { area = "Identity" });  // Returns to the view with errors and ViewBag information
         }
     }
 }

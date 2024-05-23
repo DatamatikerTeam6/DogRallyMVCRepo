@@ -6,6 +6,9 @@ namespace DogRallyMVC.Services
     {
         Task<HttpResponseMessage> RegisterUser(RegisterDTO registerDTO, HttpClient httpClient);
 
-        Task<string> AuthenticateUser(UserDTO userDTO, HttpClient httpClient);
+        //Task<HttpResponseMessage> LoginUser(UserDTO loginDTO, HttpClient httpClient);
+
+        Task<HttpResponseMessage> AuthenticateUser(UserDTO userDTO, HttpClient httpClient);
+
     }
 }

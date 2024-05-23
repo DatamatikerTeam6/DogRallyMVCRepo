@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DogRallyMVC")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+384613e9bbf483c8f6e2e42d71d7bb0d75aff97e")]
 [assembly: System.Reflection.AssemblyProductAttribute("DogRallyMVC")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DogRallyMVC")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

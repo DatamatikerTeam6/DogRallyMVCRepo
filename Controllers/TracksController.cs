@@ -36,13 +36,27 @@ namespace DogRallyMVC.Controllers
         {
 
             var client = _httpClientFactory.CreateClient();
+
+            // Hent JWT-tokenet fra sessionen
+            var token = HttpContext.Session.GetString("JWTToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            // Tilføj JWT-tokenet til anmodningsheaderen
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
             var trackDTOs = await _getUserTracksFromAPI.GetUserTracks(client, id);
 
             if (trackDTOs != null)
+            {
                 return View(trackDTOs);
-
+            }
             else
-                return BadRequest();
+            {
+                return BadRequest("Could not retrieve user tracks.");
+            }
 
         }
 

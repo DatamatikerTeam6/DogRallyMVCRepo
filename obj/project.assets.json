@@ -8001,11 +8001,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\PITA\\Downloads\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\DogRallyMVC.csproj",
+      "projectUniqueName": "C:\\Users\\PITA\\OneDrive\\Skrivebord\\DogRallyMVC\\DogRallyMVC.csproj",
       "projectName": "DogRallyMVC",
-      "projectPath": "C:\\Users\\PITA\\Downloads\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\DogRallyMVC.csproj",
+      "projectPath": "C:\\Users\\PITA\\OneDrive\\Skrivebord\\DogRallyMVC\\DogRallyMVC.csproj",
       "packagesPath": "C:\\Users\\PITA\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\PITA\\Downloads\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\DogRallyMVC-CRUDFunctionalityFullyImplemented\\obj\\",
+      "outputPath": "C:\\Users\\PITA\\OneDrive\\Skrivebord\\DogRallyMVC\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\PITA\\AppData\\Roaming\\NuGet\\NuGet.Config",
