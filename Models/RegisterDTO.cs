@@ -16,7 +16,7 @@ namespace DogRallyMVC.Models
         [Display(Name = "Password")]
             public string Password { get; set; }
 
-        //Confirm password
+       
     }
    
 }

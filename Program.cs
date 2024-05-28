@@ -22,6 +22,8 @@ builder.Services.AddTransient<IGetTrackFromAPI, GetTrackFromAPI>();
 builder.Services.AddTransient<IGetUserTracksFromAPI, GetUserTracksFromAPI>();
 builder.Services.AddTransient<IDeleteTrackFromAPI, DeleteTrackFromAPI>();
 builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<IJWTTokenService, JWTTokenService>();
 
 
 // Add session services
@@ -48,7 +50,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession(); // Add session middleware 
+// Add session middleware 
+app.UseSession(); 
 
 app.UseAuthorization(); 
 

@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="Views\Tracks\Index.cshtml" />
+    <Content Remove="Views\Tracks\MyTracks.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Views\Tracks\NewFile.txt" />
   </ItemGroup>
 

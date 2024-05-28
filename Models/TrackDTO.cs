@@ -20,6 +20,10 @@ namespace DogRallyMVC.Models
 
         [JsonPropertyName("trackDate")]
         [Required]
-        public DateTime TrackDate { get; set; }
+        public DateTime TrackDate { get; set; } = DateTime.Now;
+
+        [JsonPropertyName("userID")]
+        [Required]
+        public string UserID { get; set; }
     }
 }

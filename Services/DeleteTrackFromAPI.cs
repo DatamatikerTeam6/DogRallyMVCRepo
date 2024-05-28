@@ -7,7 +7,7 @@ namespace DogRallyMVC.Services
     {
         public async Task DeleteTrack(HttpClient client, int id)
         {
-            var url = $"https://localhost:7183/Tracks/DeleteTrack/{id}"; // Ensure the URL matches your API routing
+            var url = $"https://localhost:7183/Tracks/DeleteTrack/{id}"; 
 
             try
             {
@@ -20,9 +20,7 @@ namespace DogRallyMVC.Services
                 }
             }
             catch (Exception ex)
-            {
-                // Consider logging the exception in a way that's appropriate for your application environment
-                // This might involve using a logging framework like NLog, Serilog, or another
+            {               
                 throw new Exception("An error occurred while deleting the track.", ex);
             }
         }

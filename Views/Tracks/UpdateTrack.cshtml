@@ -20,13 +20,12 @@
 
 <div id="canvas-container">
     <canvas id="dogTrainingCanvas" width="1295" height="600"></canvas>
-    <!-- Indsæt din canvas kode her -->
 </div>
 
 
 <script>
 
-    @* Omdan Model.Exercises til et JSON-objekt *@
+    @* Cast model exercises to json object *@
                 var exercises = @Html.Raw(Json.Serialize(Model.Exercises.Select(e => new
         {
             e.ExerciseID,
@@ -41,18 +40,18 @@
     exercises.forEach(function (exercise) {
         var img = new Image();
         img.onload = function () {
-            console.log("Indlæst billede for øvelse: ", exercise.ExerciseID); // Rettede 'exercises.name' til 'exercise.navn'
+            console.log("Indlæst billede for øvelse: ", exercise.ExerciseID); 
             exercise.image = img;
             drawExercise(exercise);
         };
         img.onerror = function () {
-            console.error("Kunne ikke indlæse billede: ", exercise.illustrationPath); // Rettede 'exercises.IllustrationPath' til 'exercise.IllustrationPath'
+            console.error("Kunne ikke indlæse billede: ", exercise.illustrationPath); 
         };
-        img.src = exercise.illustrationPath; // Rettede 'exercises.IllustrationPath' til 'exercise.IllustrationPath'
+        img.src = exercise.illustrationPath; 
     });
 
     function drawExercise(exercise) {
-        ctx.drawImage(exercise.image, exercise.x, exercise.y, 50, 50); // Rettede 'PositionX' og 'PositionY' til 'x' og 'y'
+        ctx.drawImage(exercise.image, exercise.x, exercise.y, 50, 50); 
     }
 
     var draggedExercise = null;
@@ -67,10 +66,10 @@
 
     canvas.addEventListener('mousemove', function (e) {
         if (draggedExercise) {
-            draggedExercise.x = e.offsetX - 25; // Centrer billedet under musen
+            draggedExercise.x = e.offsetX - 25; // Centre the picture under the cursor
             draggedExercise.y = e.offsetY - 25;
 
-            // Opdater de relevante inputfelter
+            // Update relevant indput fields
             var posXField = document.getElementById('exercisePosX_' + draggedExercise.index);
             var posYField = document.getElementById('exercisePosY_' + draggedExercise.index);
             if (posXField && posYField) {
@@ -78,7 +77,7 @@
                 posYField.value = draggedExercise.y;
             }
 
-            // Opdater positionen i exercises array
+            // Update position in exercise array
             exercises[draggedExercise.index] = draggedExercise;
 
             redrawCanvas();
@@ -91,8 +90,8 @@
 
 
     function redrawCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Rens canvas
-        exercises.forEach(drawExercise); // Tegn alle øvelser igen
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear Canvas
+        exercises.forEach(drawExercise); // Redraw all exercises
     }
 </script>
 
@@ -102,61 +101,55 @@
         <form asp-action="UpdateTrack">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-            <!-- Inputfelter til bane -->
+            <!-- Input fields for User -->
             <div class="form-group">
-                <label asp-for="@Model.Track.TrackName" class="control-label"></label>
+                <input type="hidden" asp-for="@Model.Track.UserID" />
+                <span asp-validation-for="@Model.Track.UserID" class="text-danger"></span>
+            </div>
+
+
+            <!-- Input fields for Track -->
+            <div class="form-group">
+                <label asp-for="@Model.Track.TrackName" class="control-label">Banenavn</label>
                 <input asp-for="@Model.Track.TrackName" class="form-control" />
                 <span asp-validation-for="@Model.Track.TrackName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="@Model.Track.TrackDate" class="control-label"></label>
+                <label asp-for="@Model.Track.TrackDate" class="control-label">Banedato</label>
                 <input asp-for="@Model.Track.TrackDate" class="form-control" />
                 <span asp-validation-for="@Model.Track.TrackDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="@Model.Track.TrackID" class="control-label"></label>
-                <input asp-for="@Model.Track.TrackID" class="form-control" />
+                <input type="hidden" asp-for="@Model.Track.TrackID" />
                 <span asp-validation-for="@Model.Track.TrackID" class="text-danger"></span>
             </div>
 
-            <!-- Inputfelter til hver øvelse -->
+
+            <!-- Input fields for every exercise -->
             @for (int i = 0; i < Model.Exercises.Count; i++)
             {
                 <div class="form-group">
-                    <label asp-for="Exercises[i].ExerciseID" class="control-label"></label>
-                    <input asp-for="Exercises[i].ExerciseID" class="form-control" />
+                    <input type="hidden" asp-for="Exercises[i].ExerciseID" />
                     <span asp-validation-for="Exercises[i].ExerciseID" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <input type="hidden" asp-for="Exercises[i].ExerciseID" />
-                    <label asp-for="Exercises[i].ExercisePositionX" class="control-label"></label>
-                    <input id="exercisePosX_@i" asp-for="Exercises[i].ExercisePositionX" class="form-control" />
+                    <input type="hidden" id="exercisePosX_@i" asp-for="Exercises[i].ExercisePositionX" />
                     <span asp-validation-for="Exercises[i].ExercisePositionX" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="Exercises[i].ExercisePositionY" class="control-label"></label>
-                    <input id="exercisePosY_@i" asp-for="Exercises[i].ExercisePositionY" class="form-control" />
+                    <input type="hidden" id="exercisePosY_@i" asp-for="Exercises[i].ExercisePositionY" />
                     <span asp-validation-for="Exercises[i].ExercisePositionY" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="Exercises[i].ExerciseIllustrationPath" class="control-label"></label>
-                    <input asp-for="Exercises[i].ExerciseIllustrationPath" class="form-control" />
+                    <input type="hidden" asp-for="Exercises[i].ExerciseIllustrationPath" />
                     <span asp-validation-for="Exercises[i].ExerciseIllustrationPath" class="text-danger"></span>
                 </div>
             }
 
-
-            <!--
-            js laver en ny exercise liste
-            når vi trækker en øvelse tilføjes den trukne øvelse til listen
-            input form er bundet til x og y værdier i tevm
-            henter værdierne derfra, sender de nye værdier dertil
-            skal ikke hente værdierne derfra men fra sin egen liste
-            -->
-            <!-- Submit-knap -->
+         
             <br />
             <div class="form-group">
                 <input type="submit" value="Gem ændringer" class="btn btn-primary" />
@@ -165,9 +158,6 @@
     </div>
 </div>
 <br />
-<div>
-    <a asp-action="Index">Tilbage til Mine Baner</a>
-</div>
 
 @section Scripts {
     @{

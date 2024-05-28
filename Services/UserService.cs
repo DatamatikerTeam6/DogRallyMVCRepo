@@ -30,30 +30,7 @@ namespace DogRallyMVC.Services
                 throw new InvalidOperationException("Error serializing the registration data.", ex);
             }
         }
-        //public async Task<HttpResponseMessage> LoginUser(UserDTO loginDTO, HttpClient httpClient)
-        //{
-        //    try
-        //    {
-        //        var json = JsonConvert.SerializeObject(loginDTO);
-        //        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        //        var response = await httpClient.PostAsync("https://localhost:7183/api/accounts/login", content);
-        //        if (response.IsSuccessStatusCode)
-        //        {
-        //            return response;
-        //        }
-        //        else
-        //        {
-        //            var errorResponse = await response.Content.ReadAsStringAsync();
-        //            throw new Exception($"Det lykkedes ikke at logge ind: {errorResponse}");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new InvalidOperationException("Error serializing the registration data.", ex);
-        //    }
-        //}
-
+      
         public async Task<HttpResponseMessage> AuthenticateUser(UserDTO userDTO, HttpClient httpClient)
         {
             var response = await httpClient.PostAsJsonAsync("https://localhost:7183/api/accounts/login", userDTO);

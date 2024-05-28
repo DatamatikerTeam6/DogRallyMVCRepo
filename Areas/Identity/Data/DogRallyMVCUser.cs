@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace DogRallyMVC.Areas.Identity.Data;
 
-// Add profile data for application users by adding properties to the DogRallyMVCUser class
+// Define the DogRallyMVCUser class inheriting from IdentityUser
 public class DogRallyMVCUser : IdentityUser
 {
 }

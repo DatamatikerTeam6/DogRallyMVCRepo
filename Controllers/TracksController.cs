@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -32,9 +34,15 @@ namespace DogRallyMVC.Controllers
             _deleteTrackFromAPI = deleteTrackFromAPI;
         }
 
-        public async Task<IActionResult> Index(int id)
-        {
 
+        private void ConfigureHttpClientWithToken(HttpClient client, string token)
+        {
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+
+        public async Task<IActionResult> Tracks(string type)
+        {
             var client = _httpClientFactory.CreateClient();
 
             // Hent JWT-tokenet fra sessionen
@@ -47,7 +55,38 @@ namespace DogRallyMVC.Controllers
             // Tilføj JWT-tokenet til anmodningsheaderen
             client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
-            var trackDTOs = await _getUserTracksFromAPI.GetUserTracks(client, id);
+            // Udtræk brugerrollen fra tokenet
+            var userRole = GetUserRoleFromToken(token);
+            var userId = HttpContext.Session.GetString("UserID");
+
+            List<TrackDTO> trackDTOs = null;
+
+            // Hvis brugeren er administrator, håndter type parameteren
+            if (userRole == "Admin")
+            {
+                if (type == "MyTracks")
+                {
+                    // Hent kun administratorens egne baner
+                    trackDTOs = await _getUserTracksFromAPI.GetUserTracks(client, userId);
+                }
+                else if (type == "AllTracks")
+                {
+                    // Hent alle baner
+                    trackDTOs = await _getUserTracksFromAPI.GetAllUserTracks(client);
+                }
+            }
+            else
+            {
+                // For almindelige brugere, håndter type parameteren
+                if (type == "AllTracks")
+                {
+                    trackDTOs = await _getUserTracksFromAPI.GetAllUserTracks(client);
+                }
+                else if (type == "MyTracks")
+                {
+                    trackDTOs = await _getUserTracksFromAPI.GetUserTracks(client, userId);
+                }
+            }
 
             if (trackDTOs != null)
             {
@@ -55,10 +94,11 @@ namespace DogRallyMVC.Controllers
             }
             else
             {
-                return BadRequest("Could not retrieve user tracks.");
+                return BadRequest("Could not retrieve tracks.");
             }
-
         }
+
+
 
         public IActionResult Privacy()
         {
@@ -70,6 +110,9 @@ namespace DogRallyMVC.Controllers
         {
             var client = _httpClientFactory.CreateClient();
 
+            //Get the current user's userID
+            var userID = HttpContext.Session.GetString("UserID");
+
             Console.WriteLine("Før kald til GetExercises");
 
             //Get exercises from API
@@ -77,20 +120,37 @@ namespace DogRallyMVC.Controllers
 
             Console.WriteLine("Efter kald til GetExercises");
 
-            Console.WriteLine("Berit");
+            Console.WriteLine("Working");
             var viewModel = new TrackExerciseViewModelDTO
             {
-                Track = new TrackDTO(),
+                Track = new TrackDTO
+                {
+                    UserID = userID,
+                }
+                ,
                 Exercises = exercises
             };
             return View(viewModel);
         }
 
         [HttpPost]
-       
         public async Task<IActionResult> CreateTrack([Bind("Exercises, Track")] TrackExerciseViewModelDTO tevm)
         {
             HttpClient client = _httpClientFactory.CreateClient();
+
+         
+            string token = HttpContext.Session.GetString("JWTToken");
+
+            if (string.IsNullOrEmpty(token))
+            {
+                ModelState.AddModelError(string.Empty, "JWT token is missing.");
+                ViewBag.ApiResponse = "JWT token is missing.";
+                return View(tevm);
+            }
+
+            // Configure HttpClient with JWT token for this request
+            ConfigureHttpClientWithToken(client, token);
+
 
             try
             {
@@ -98,7 +158,7 @@ namespace DogRallyMVC.Controllers
                 if (response.IsSuccessStatusCode)
                 {
                     ViewBag.SuccessMessage = "Track created successfully!";
-                    return RedirectToAction("Index");  // You could also redirect to a success page as needed
+                    return RedirectToAction("Tracks", new { type = "MyTracks" });  // You could also redirect to a success page as needed
                 }
                 else
                 {
@@ -117,10 +177,17 @@ namespace DogRallyMVC.Controllers
             return View(tevm); // Returns to the view with errors and ViewBag information
         }
 
+       
+
         [HttpGet]
         public async Task<IActionResult> ReadTrack(int id)
         {
             var client = _httpClientFactory.CreateClient();
+
+            string token = HttpContext.Session.GetString("JWTToken");
+
+            // Configure HttpClient with JWT token for this request
+            ConfigureHttpClientWithToken(client, token);
 
             //Get Track from API
             List<TrackExerciseDTO> trackExercises = await _getTrackFromAPI.GetTrack(client, id);
@@ -143,13 +210,23 @@ namespace DogRallyMVC.Controllers
         {
             var client = _httpClientFactory.CreateClient();
 
+            string token = HttpContext.Session.GetString("JWTToken");
+            // Configure HttpClient with JWT token for this request
+            ConfigureHttpClientWithToken(client, token);
+
+
             // Get Track from API
             List<TrackExerciseDTO> trackExercises = await _getTrackFromAPI.GetTrack(client, id);
+
+
+            //Get the current user's userID
+            var userID = HttpContext.Session.GetString("UserID");
 
             // Assuming the API returns all exercises for a specific track
             // and assuming TrackDTO and ExerciseDTO can be constructed from TrackExerciseDTO
             var trackDTO = new TrackDTO
             {
+                UserID = userID,
                 TrackID = trackExercises.FirstOrDefault()?.ForeignTrackID ?? 0,
                 TrackName = trackExercises.FirstOrDefault()?.TrackName
             };
@@ -175,6 +252,19 @@ namespace DogRallyMVC.Controllers
         public async Task<IActionResult> UpdateTrack([Bind("Exercises, Track")] TrackExerciseViewModelDTO tevm)
         {
             HttpClient client = _httpClientFactory.CreateClient();
+            string token = HttpContext.Session.GetString("JWTToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                return Unauthorized();
+            }
+
+            // Configure HttpClient with JWT token for this request
+            ConfigureHttpClientWithToken(client, token);
+
+            // Get the user's role from the token
+            var userRole = GetUserRoleFromToken(token);
+            var userId = HttpContext.Session.GetString("UserID");
+
             string json = JsonConvert.SerializeObject(tevm);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             _logger.LogInformation(json);
@@ -184,33 +274,51 @@ namespace DogRallyMVC.Controllers
                 var response = await client.PutAsync("https://localhost:7183/Tracks/UpdateTrack", content);
                 if (response.IsSuccessStatusCode)
                 {
-                    ViewBag.SuccessMessage = "Track created successfully!";
-                    return RedirectToAction("Index");  // You could also redirect to a success page as needed
+                    if (userRole == "Admin")
+                    {
+                        return RedirectToAction("Tracks", new { type = "AllTracks" });
+                    }
+                    else
+                    {
+                        return RedirectToAction("Tracks", new { type = "MyTracks" });
+                    }                 
                 }
                 else
                 {
                     // Read the response body for error details
                     var errorResponse = await response.Content.ReadAsStringAsync();
                     ModelState.AddModelError(string.Empty, $"API returned an error: {errorResponse}");
-                    ViewBag.ApiResponse = $"API Error: {errorResponse}";  // Storing error response in ViewBag for display
                 }
             }
             catch (Exception ex)
             {
                 ModelState.AddModelError(string.Empty, $"Error sending data to API: {ex.Message}");
-                ViewBag.ApiResponse = $"Exception: {ex.Message}";  // Store exception message in ViewBag
             }
             return View(tevm); // Return to the view with errors and ViewBag information
         }
 
+
+
         [HttpPost]
         public async Task<IActionResult> DeleteTrack(int id)
         {
+            var client = _httpClientFactory.CreateClient();
+            string token = HttpContext.Session.GetString("JWTToken");
+            // Configure HttpClient with JWT token for this request
+            ConfigureHttpClientWithToken(client, token);
+
+            var userRole = GetUserRoleFromToken(token);
             try
-            {
-                var client = _httpClientFactory.CreateClient();
+            {              
                 await _deleteTrackFromAPI.DeleteTrack(client, id);
-                return RedirectToAction("Index");
+                if (userRole == "Admin")
+                {
+                    return RedirectToAction("Tracks", new { type = "AllTracks" });
+                }
+                else
+                { 
+                    return RedirectToAction("Tracks", new { type = "MyTracks" }); 
+                }
             }
             catch (Exception ex)
             {
@@ -222,6 +330,14 @@ namespace DogRallyMVC.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private string GetUserRoleFromToken(string token)
+        {
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadToken(token) as JwtSecurityToken;
+            var role = jwtToken?.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Role)?.Value;
+            return role;
         }
     }
 }
